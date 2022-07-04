@@ -1,20 +1,45 @@
 const db = require('../config/mysql');
 
-exports.Login = (req,res)=>{
-    const sqlquery = "SELECT * FROM tbl_users";
-    db.query(sqlquery,(err,results)=>{
-        res.json({
-            status:200,
-            results:results
-        })
-    })
+exports.login = async (req,res)=>{
+    const {email,password} = req.body;
+    const sqlquery = 'SELECT * FROM tbl_users WHERE email = ? and password=?';
+
+        db.query(sqlquery,[email,password],(err,results)=>{
+        if (err) throw err;
+        if (results.length >0){
+            return res.json({
+                status : "success",
+                message : "Login telah berhasil"
+            })
+        }
+        else{
+            return res.json({
+                status : "error",
+                message : "Email dan Password tidak ada yang cocok"
+            })
+        }
+
 }
-exports.Register = (req,res)=>{
-    const sqlquery = `INSERT INTO tbl_users (id, name, telephone, email, password) VALUES (NULL, '${req.body.name}','${req.body.telephone}','${req.body.email}','${req.body.password}')`;
-    db.query(sqlquery,(err,results)=>{
-        res.json({
-            status : 200,
-            results : results
-        })
+)}
+exports.register = async (req,res)=>{
+    const {name,telephone, email, password} = req.body;
+    const sqlquery = 'INSERT INTO tbl_users SET ?';
+    db.query("SELECT email FROM tbl_users where email = ?",[email],(err,results)=>{
+        if (results.length >0){
+            res.json({
+                status : "error",
+                message: "Email telah digunakan"
+            })
+        }
+        else{
+            db.query(sqlquery,{name:name,telephone:telephone,email:email,password:password},(err,results)=>{
+                if (err) throw err;
+                return res.json({
+                    status : "success",
+                    message : "Akun user telah berhasil di daftarkan"
+                })
+            })
+        }
     })
+
 }
